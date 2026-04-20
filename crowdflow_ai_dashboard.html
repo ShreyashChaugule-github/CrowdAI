@@ -1,0 +1,643 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --alert-green: #1D9E75;
+  --alert-green-bg: #E1F5EE;
+  --alert-amber: #BA7517;
+  --alert-amber-bg: #FAEEDA;
+  --alert-red: #A32D2D;
+  --alert-red-bg: #FCEBEB;
+  --zone-hot: rgba(224,75,48,0.82);
+  --zone-med: rgba(186,117,23,0.7);
+  --zone-cool: rgba(29,158,117,0.55);
+  --zone-empty: rgba(29,158,117,0.18);
+}
+
+body { background: transparent; font-family: var(--font-display); }
+
+.root { padding: 0 0 20px; }
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  margin-bottom: 16px;
+}
+.logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-dot {
+  width: 9px; height: 9px;
+  background: #1D9E75;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(29,158,117,0.28);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.35);opacity:.7} }
+.live-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  background: var(--alert-green-bg);
+  color: var(--alert-green);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 0.5px solid rgba(29,158,117,0.3);
+}
+.event-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.03em;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  padding: 0 20px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 11px 14px 10px;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+}
+.stat-val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+.stat-sub {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+  font-family: var(--font-mono);
+}
+.stat-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 12px;
+  padding: 0 20px;
+  margin-bottom: 14px;
+}
+
+.heatmap-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.card-header {
+  padding: 10px 14px 8px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+.card-body { padding: 14px; }
+
+.stadium-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.5;
+  cursor: crosshair;
+}
+.stadium-svg { width: 100%; height: 100%; }
+
+.legend-row {
+  display: flex;
+  gap: 16px;
+  padding: 8px 14px 10px;
+  align-items: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+}
+.legend-sq {
+  width: 12px; height: 12px;
+  border-radius: 2px;
+}
+
+.side-panel { display: flex; flex-direction: column; gap: 12px; }
+
+.wait-card, .alert-card, .nav-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.wait-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  gap: 8px;
+}
+.wait-row:last-child { border-bottom: none; }
+.wait-name { font-size: 12px; color: var(--color-text-primary); font-family: var(--font-display); font-weight: 500; letter-spacing: 0.02em; flex: 1; }
+.wait-bar-wrap { flex: 1; height: 5px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+.wait-bar { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+.wait-time { font-size: 11px; font-family: var(--font-mono); font-weight: 500; min-width: 30px; text-align: right; }
+
+.alert-item {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  align-items: flex-start;
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-icon {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.alert-text { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-primary); line-height: 1.45; flex: 1; }
+.alert-time { font-size: 10px; font-family: var(--font-mono); color: var(--color-text-secondary); white-space: nowrap; margin-top: 1px; }
+
+.nav-routes { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.route-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-tertiary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.route-row:hover { background: var(--color-background-secondary); }
+.route-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  min-width: 48px;
+  text-align: center;
+}
+.route-desc { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-secondary); flex: 1; }
+.route-eta { font-size: 11px; font-family: var(--font-mono); font-weight: 500; color: var(--color-text-primary); }
+
+.bottom-bar {
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mini-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.sparkline-wrap { padding: 10px 14px 12px; }
+.spark-row { display: flex; align-items: flex-end; gap: 3px; height: 48px; }
+.spark-bar {
+  flex: 1;
+  background: var(--color-border-secondary);
+  border-radius: 2px 2px 0 0;
+  transition: height 0.5s ease;
+  position: relative;
+}
+.spark-bar.active { background: #1D9E75; }
+.spark-labels { display: flex; justify-content: space-between; padding: 4px 0 0; }
+.spark-label { font-size: 9px; font-family: var(--font-mono); color: var(--color-text-secondary); }
+
+.chat-bar {
+  margin: 14px 20px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.chat-input {
+  flex: 1;
+  height: 36px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 0 12px;
+  color: var(--color-text-primary);
+  outline: none;
+}
+.chat-input:focus { border-color: #1D9E75; }
+.chat-btn {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  background: #1D9E75;
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.chat-btn:hover { opacity: 0.88; }
+.chat-response {
+  margin: 8px 20px 0;
+  padding: 10px 14px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+.chat-hint { font-size: 10px; font-family: var(--font-mono); color: var(--color-text-secondary); padding: 5px 20px 0; }
+
+.sim-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-family: var(--font-mono); color: var(--color-text-secondary); cursor: pointer;
+}
+</style>
+
+<div class="root">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo"><span class="logo-dot"></span>CrowdFlow AI</div>
+      <span class="live-badge">LIVE</span>
+    </div>
+    <span class="event-label" id="eventLabel">IPL 2026 — MI vs CSK · 42,180 ATTENDEES</span>
+    <label class="sim-toggle">
+      <input type="checkbox" id="simToggle" checked style="accent-color:#1D9E75" onchange="toggleSim()">
+      Simulate
+    </label>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Occupancy</div>
+      <div class="stat-val" id="s1">87%</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:#1D9E75"></span>42,180 / 48,500</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg wait</div>
+      <div class="stat-val" id="s2">6.4<span style="font-size:14px;font-weight:400">min</span></div>
+      <div class="stat-sub"><span class="stat-dot" style="background:#BA7517"></span>↑ 1.2 from last hour</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active alerts</div>
+      <div class="stat-val" id="s3">3</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:#E24B4A"></span>1 critical, 2 advisory</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Crowd score</div>
+      <div class="stat-val" id="s4">74</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:#1D9E75"></span>Flow index / 100</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="heatmap-card">
+      <div class="card-header">
+        <span class="card-title">Live Crowd Heatmap</span>
+        <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)" id="heatTs">Updated 0s ago</span>
+      </div>
+      <div class="card-body" style="padding:14px 14px 0">
+        <div class="stadium-wrap">
+          <svg class="stadium-svg" viewBox="0 0 480 320" id="stadiumSvg">
+            <!-- Outer boundary -->
+            <ellipse cx="240" cy="160" rx="230" ry="150" fill="none" stroke="var(--color-border-secondary)" stroke-width="1.5"/>
+            <!-- Pitch (field) -->
+            <ellipse cx="240" cy="160" rx="72" ry="52" fill="rgba(29,158,117,0.12)" stroke="rgba(29,158,117,0.4)" stroke-width="1"/>
+            <ellipse cx="240" cy="160" rx="30" ry="22" fill="none" stroke="rgba(29,158,117,0.3)" stroke-width="0.5" stroke-dasharray="3 3"/>
+            <text x="240" y="164" text-anchor="middle" font-size="8" fill="rgba(29,158,117,0.6)" font-family="'DM Mono',monospace" font-weight="500">PITCH</text>
+
+            <!-- Heatmap zones (sectors) — these will be updated by JS -->
+            <!-- North stand -->
+            <path id="z-north" d="M120,30 Q240,10 360,30 Q300,75 240,80 Q180,75 120,30Z" opacity="0.82"/>
+            <!-- South stand -->
+            <path id="z-south" d="M120,290 Q240,310 360,290 Q300,245 240,240 Q180,245 120,290Z" opacity="0.82"/>
+            <!-- East stand -->
+            <path id="z-east" d="M390,55 Q465,160 390,265 Q345,210 330,160 Q345,110 390,55Z" opacity="0.82"/>
+            <!-- West stand -->
+            <path id="z-west" d="M90,55 Q15,160 90,265 Q135,210 150,160 Q135,110 90,55Z" opacity="0.82"/>
+            <!-- NE corner -->
+            <path id="z-ne" d="M360,30 Q420,50 390,55 Q370,80 345,110 Q310,90 300,75 Q330,52 360,30Z" opacity="0.75"/>
+            <!-- NW corner -->
+            <path id="z-nw" d="M120,30 Q60,50 90,55 Q110,80 135,110 Q170,90 180,75 Q150,52 120,30Z" opacity="0.75"/>
+            <!-- SE corner -->
+            <path id="z-se" d="M360,290 Q420,270 390,265 Q370,240 345,210 Q310,230 300,245 Q330,268 360,290Z" opacity="0.75"/>
+            <!-- SW corner -->
+            <path id="z-sw" d="M120,290 Q60,270 90,265 Q110,240 135,210 Q170,230 180,245 Q150,268 120,290Z" opacity="0.75"/>
+
+            <!-- Gate labels -->
+            <text x="240" y="22" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate N</text>
+            <text x="240" y="306" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate S</text>
+            <text x="466" y="163" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate E</text>
+            <text x="14" y="163" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate W</text>
+
+            <!-- Congestion indicator dots -->
+            <circle id="dot-food1" cx="300" cy="48" r="5" fill="#E24B4A" opacity="0.9"/>
+            <circle id="dot-food2" cx="180" cy="48" r="5" fill="#EF9F27" opacity="0.9"/>
+            <circle id="dot-exit1" cx="390" cy="160" r="5" fill="#E24B4A" opacity="0.9"/>
+            <circle id="dot-rest1" cx="240" cy="280" r="5" fill="#EF9F27" opacity="0.9"/>
+
+            <!-- Pulse rings on hotspots -->
+            <circle id="pulse1" cx="300" cy="48" r="5" fill="none" stroke="#E24B4A" stroke-width="1" opacity="0">
+              <animate attributeName="r" values="5;18" dur="1.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.7;0" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle id="pulse2" cx="390" cy="160" r="5" fill="none" stroke="#E24B4A" stroke-width="1" opacity="0">
+              <animate attributeName="r" values="5;18" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.7;0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-sq" style="background:rgba(224,75,48,0.8)"></div>Critical</div>
+        <div class="legend-item"><div class="legend-sq" style="background:rgba(186,117,23,0.7)"></div>High</div>
+        <div class="legend-item"><div class="legend-sq" style="background:rgba(29,158,117,0.55)"></div>Moderate</div>
+        <div class="legend-item"><div class="legend-sq" style="background:rgba(29,158,117,0.18)"></div>Low</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+          <svg width="8" height="8"><circle cx="4" cy="4" r="4" fill="#E24B4A"/></svg>
+          <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)">Hotspot</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div class="wait-card">
+        <div class="card-header"><span class="card-title">Wait Times</span></div>
+        <div id="waitRows"></div>
+      </div>
+
+      <div class="alert-card">
+        <div class="card-header"><span class="card-title">Smart Alerts</span></div>
+        <div id="alertRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="mini-card">
+      <div class="card-header"><span class="card-title">Route Suggestions</span></div>
+      <div class="nav-routes" id="navRoutes"></div>
+    </div>
+    <div class="mini-card">
+      <div class="card-header">
+        <span class="card-title">Hourly Crowd Flow</span>
+        <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)">% capacity</span>
+      </div>
+      <div class="sparkline-wrap">
+        <div class="spark-row" id="sparkRow"></div>
+        <div class="spark-labels" id="sparkLabels"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-bar">
+    <input class="chat-input" id="chatInput" placeholder="Ask CrowdFlow AI... e.g. 'Best route to Section D from Gate W'">
+    <button class="chat-btn" onclick="askAI()">Ask ↗</button>
+  </div>
+  <div class="chat-response" id="chatResponse"></div>
+  <div class="chat-hint" id="chatHint">Powered by Gemini · Real-time crowd data · Personalized routing</div>
+</div>
+
+<script>
+const zones = {
+  north: {el: 'z-north', level: 'critical', label: 'North Stand'},
+  south: {el: 'z-south', level: 'medium', label: 'South Stand'},
+  east:  {el: 'z-east',  level: 'critical', label: 'East Stand'},
+  west:  {el: 'z-west',  level: 'low',      label: 'West Stand'},
+  ne:    {el: 'z-ne',    level: 'high',     label: 'NE Corner'},
+  nw:    {el: 'z-nw',    level: 'low',      label: 'NW Corner'},
+  se:    {el: 'z-se',    level: 'high',     label: 'SE Corner'},
+  sw:    {el: 'z-sw',    level: 'low',      label: 'SW Corner'},
+};
+
+const fills = {
+  critical: 'rgba(224,75,48,0.82)',
+  high:     'rgba(186,117,23,0.70)',
+  medium:   'rgba(29,158,117,0.55)',
+  low:      'rgba(29,158,117,0.18)',
+};
+
+const waitData = [
+  {name:'Food Court A', time:14, max:20, color:'#E24B4A'},
+  {name:'Food Court B', time:6,  max:20, color:'#1D9E75'},
+  {name:'Restroom N',   time:9,  max:20, color:'#EF9F27'},
+  {name:'Restroom S',   time:3,  max:20, color:'#1D9E75'},
+  {name:'Gate E Exit',  time:18, max:20, color:'#E24B4A'},
+  {name:'Gate W Exit',  time:4,  max:20, color:'#1D9E75'},
+];
+
+const alertData = [
+  {level:'critical', msg:'Gate E critically congested. Use Gate W or S.', time:'now', bg:'var(--alert-red-bg)', col:'var(--alert-red)'},
+  {level:'warn',     msg:'Food Court A queue: 14 min. Court B is clear.', time:'2m',  bg:'var(--alert-amber-bg)', col:'var(--alert-amber)'},
+  {level:'info',     msg:'North Stand at 94%. Enter via south concourse.', time:'5m', bg:'var(--alert-green-bg)', col:'var(--alert-green)'},
+];
+
+const routes = [
+  {from:'Gate W',label:'Gate W → Sec D',status:'clear',statusColor:'#1D9E75',statusBg:'#E1F5EE',eta:'3 min'},
+  {from:'Gate N',label:'Gate N → Sec D',status:'moderate',statusColor:'#BA7517',statusBg:'#FAEEDA',eta:'7 min'},
+  {from:'Gate E',label:'Gate E → Sec D',status:'congested',statusColor:'#A32D2D',statusBg:'#FCEBEB',eta:'14 min'},
+];
+
+const sparkHours = ['18','19','20','21','22','23'];
+const sparkVals =  [22, 55, 78, 87, 65, 40];
+
+function sendPrompt(prompt) {
+  const responseDiv = document.getElementById('chatResponse');
+  let response = '';
+
+  prompt = prompt.toLowerCase();
+
+  if (prompt.includes('route') || prompt.includes('way') || prompt.includes('get to') || prompt.includes('section d')) {
+    const bestRoute = routes.find(r => r.status === 'clear') || routes[0];
+    response = `Best route to Section D: ${bestRoute.label}. ETA: ${bestRoute.eta}. Status: ${bestRoute.status}. Avoid Gate E due to congestion.`;
+  } else if (prompt.includes('wait') || prompt.includes('food') || prompt.includes('restroom')) {
+    const relevant = waitData.filter(w => prompt.includes(w.name.toLowerCase().split(' ')[0]));
+    if (relevant.length > 0) {
+      response = relevant.map(w => `${w.name}: ${w.time} min wait.`).join(' ');
+    } else {
+      response = 'Current wait times: ' + waitData.map(w => `${w.name}: ${w.time}m`).join(', ') + '.';
+    }
+  } else if (prompt.includes('alert') || prompt.includes('issue')) {
+    response = 'Active alerts: ' + alertData.map(a => a.msg).join(' ');
+  } else if (prompt.includes('occupancy') || prompt.includes('crowd')) {
+    response = 'Current occupancy: 87%. Crowd score: 74/100. North and East stands are congested.';
+  } else if (prompt.includes('help') || prompt.includes('what')) {
+    response = 'I can help with routing, wait times, alerts, and crowd info. Try asking "Best route to Section D" or "Wait time for Food Court".';
+  } else {
+    response = 'I\'m CrowdFlow AI. Ask me about routes, wait times, or current crowd status.';
+  }
+
+  responseDiv.textContent = response;
+  responseDiv.style.display = 'block';
+  document.getElementById('chatInput').value = '';
+}
+
+function renderWait() {
+  const c = document.getElementById('waitRows');
+  c.innerHTML = waitData.map(w => `
+    <div class="wait-row">
+      <span class="wait-name">${w.name}</span>
+      <div class="wait-bar-wrap"><div class="wait-bar" style="width:${Math.round(w.time/w.max*100)}%;background:${w.color}"></div></div>
+      <span class="wait-time" style="color:${w.color}">${w.time}m</span>
+    </div>`).join('');
+}
+
+function renderAlerts() {
+  const c = document.getElementById('alertRows');
+  c.innerHTML = alertData.map(a => `
+    <div class="alert-item">
+      <div class="alert-icon" style="background:${a.bg};color:${a.col}">${a.level==='critical'?'!':a.level==='warn'?'~':'i'}</div>
+      <span class="alert-text">${a.msg}</span>
+      <span class="alert-time">${a.time}</span>
+    </div>`).join('');
+}
+
+function renderRoutes() {
+  const c = document.getElementById('navRoutes');
+  c.innerHTML = routes.map(r => `
+    <div class="route-row" onclick="sendPrompt('How do I get from ${r.from} to Section D quickly right now?')">
+      <span class="route-badge" style="background:${r.statusBg};color:${r.statusColor}">${r.status}</span>
+      <span class="route-desc">${r.label}</span>
+      <span class="route-eta">${r.eta} ↗</span>
+    </div>`).join('');
+}
+
+function renderSpark() {
+  const row = document.getElementById('sparkRow');
+  const labs = document.getElementById('sparkLabels');
+  const current = 3;
+  row.innerHTML = sparkVals.map((v,i) => `<div class="spark-bar${i===current?' active':''}" style="height:${v}%"></div>`).join('');
+  labs.innerHTML = sparkHours.map((h,i) => `<span class="spark-label${i===current?' active':''}">${h}:00</span>`).join('');
+}
+
+function renderHeatmap() {
+  Object.entries(zones).forEach(([k,z]) => {
+    const el = document.getElementById(z.el);
+    if(el) el.setAttribute('fill', fills[z.level]);
+  });
+}
+
+function updateStats() {
+  document.getElementById('s1').textContent = '87%';
+  document.getElementById('s2').innerHTML = '6.4<span style="font-size:14px;font-weight:400">min</span>';
+  document.getElementById('s3').textContent = '3';
+  document.getElementById('s4').textContent = '74';
+}
+
+let tsCounter = 0;
+let simInterval = null;
+
+function updateTs() {
+  document.getElementById('heatTs').textContent = `Updated ${tsCounter}s ago`;
+  tsCounter++;
+}
+
+function simulateTick() {
+  waitData.forEach(w => {
+    const delta = (Math.random()-0.48)*2;
+    w.time = Math.max(1, Math.min(w.max-1, w.time + delta));
+    w.time = Math.round(w.time);
+    if(w.time > 15) w.color = '#E24B4A';
+    else if(w.time > 8) w.color = '#EF9F27';
+    else w.color = '#1D9E75';
+  });
+
+  const levelCycle = ['low','medium','high','critical'];
+  ['north','east'].forEach(k => {
+    const cur = levelCycle.indexOf(zones[k].level);
+    if(Math.random()>0.7) zones[k].level = levelCycle[Math.min(3,Math.max(0,cur+(Math.random()>0.5?1:-1)))];
+  });
+
+  tsCounter = 0;
+  renderWait();
+  renderHeatmap();
+  const score = 100 - Math.round(waitData.reduce((a,w)=>a+w.time,0)/waitData.length * 3.5);
+  document.getElementById('s4').textContent = Math.max(20, Math.min(99, score));
+}
+
+function toggleSim() {
+  const on = document.getElementById('simToggle').checked;
+  if(on) {
+    simInterval = setInterval(simulateTick, 2800);
+  } else {
+    clearInterval(simInterval);
+  }
+}
+
+function askAI() {
+  const v = document.getElementById('chatInput').value.trim();
+  if(v) sendPrompt(v);
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if(e.key==='Enter') askAI();
+});
+
+renderHeatmap();
+renderWait();
+renderAlerts();
+renderRoutes();
+renderSpark();
+updateStats();
+simInterval = setInterval(simulateTick, 2800);
+setInterval(updateTs, 1000);
+</script>

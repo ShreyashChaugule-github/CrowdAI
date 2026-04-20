@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrowdFlow AI Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <div class="root">
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="logo"><span class="logo-dot"></span>CrowdFlow AI</div>
+        <span class="live-badge">LIVE</span>
+      </div>
+      <span class="event-label" id="eventLabel">IPL 2026 — MI vs CSK · 42,180 ATTENDEES</span>
+      <label class="sim-toggle">
+        <input type="checkbox" id="simToggle" checked style="accent-color:#1D9E75" onchange="toggleSim()">
+        Simulate
+      </label>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">👥 Occupancy</div>
+        <div class="stat-val" id="s1">87%</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#10B981"></span>42,180 / 48,500</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">⏱️ Avg wait</div>
+        <div class="stat-val" id="s2">6.4<span style="font-size:14px;font-weight:400">min</span></div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#F59E0B"></span>↑ 1.2 from last hour</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🚨 Active alerts</div>
+        <div class="stat-val" id="s3">3</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#EF4444"></span>1 critical, 2 advisory</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📊 Crowd score</div>
+        <div class="stat-val" id="s4">74</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#10B981"></span>Flow index / 100</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="heatmap-card">
+        <div class="card-header">
+          <span class="card-title">🏟️ Live Crowd Heatmap</span>
+          <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)" id="heatTs">Updated 0s ago</span>
+        </div>
+        <div class="card-body" style="padding:14px 14px 0">
+          <div class="stadium-wrap">
+            <svg class="stadium-svg" viewBox="0 0 480 320" id="stadiumSvg">
+              <!-- Outer boundary -->
+              <ellipse cx="240" cy="160" rx="230" ry="150" fill="none" stroke="var(--color-border-secondary)" stroke-width="1.5"/>
+              <!-- Pitch (field) -->
+              <ellipse cx="240" cy="160" rx="72" ry="52" fill="rgba(29,158,117,0.12)" stroke="rgba(29,158,117,0.4)" stroke-width="1"/>
+              <ellipse cx="240" cy="160" rx="30" ry="22" fill="none" stroke="rgba(29,158,117,0.3)" stroke-width="0.5" stroke-dasharray="3 3"/>
+              <text x="240" y="164" text-anchor="middle" font-size="8" fill="rgba(29,158,117,0.6)" font-family="'DM Mono',monospace" font-weight="500">PITCH</text>
+
+              <!-- Heatmap zones (sectors) — these will be updated by JS -->
+              <!-- North stand -->
+              <path id="z-north" d="M120,30 Q240,10 360,30 Q300,75 240,80 Q180,75 120,30Z" opacity="0.82"/>
+              <!-- South stand -->
+              <path id="z-south" d="M120,290 Q240,310 360,290 Q300,245 240,240 Q180,245 120,290Z" opacity="0.82"/>
+              <!-- East stand -->
+              <path id="z-east" d="M390,55 Q465,160 390,265 Q345,210 330,160 Q345,110 390,55Z" opacity="0.82"/>
+              <!-- West stand -->
+              <path id="z-west" d="M90,55 Q15,160 90,265 Q135,210 150,160 Q135,110 90,55Z" opacity="0.82"/>
+              <!-- NE corner -->
+              <path id="z-ne" d="M360,30 Q420,50 390,55 Q370,80 345,110 Q310,90 300,75 Q330,52 360,30Z" opacity="0.75"/>
+              <!-- NW corner -->
+              <path id="z-nw" d="M120,30 Q60,50 90,55 Q110,80 135,110 Q170,90 180,75 Q150,52 120,30Z" opacity="0.75"/>
+              <!-- SE corner -->
+              <path id="z-se" d="M360,290 Q420,270 390,265 Q370,240 345,210 Q310,230 300,245 Q330,268 360,290Z" opacity="0.75"/>
+              <!-- SW corner -->
+              <path id="z-sw" d="M120,290 Q60,270 90,265 Q110,240 135,210 Q170,230 180,245 Q150,268 120,290Z" opacity="0.75"/>
+
+              <!-- Gate labels -->
+              <text x="240" y="22" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate N</text>
+              <text x="240" y="306" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate S</text>
+              <text x="466" y="163" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate E</text>
+              <text x="14" y="163" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)" font-family="'DM Mono',monospace">Gate W</text>
+
+              <!-- Congestion indicator dots -->
+              <circle id="dot-food1" cx="300" cy="48" r="5" fill="#E24B4A" opacity="0.9"/>
+              <circle id="dot-food2" cx="180" cy="48" r="5" fill="#EF9F27" opacity="0.9"/>
+              <circle id="dot-exit1" cx="390" cy="160" r="5" fill="#E24B4A" opacity="0.9"/>
+              <circle id="dot-rest1" cx="240" cy="280" r="5" fill="#EF9F27" opacity="0.9"/>
+
+              <!-- Pulse rings on hotspots -->
+              <circle id="pulse1" cx="300" cy="48" r="5" fill="none" stroke="#E24B4A" stroke-width="1" opacity="0">
+                <animate attributeName="r" values="5;18" dur="1.8s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.7;0" dur="1.8s" repeatCount="indefinite"/>
+              </circle>
+              <circle id="pulse2" cx="390" cy="160" r="5" fill="none" stroke="#E24B4A" stroke-width="1" opacity="0">
+                <animate attributeName="r" values="5;18" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.7;0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="legend-sq" style="background:rgba(224,75,48,0.8)"></div>Critical</div>
+          <div class="legend-item"><div class="legend-sq" style="background:rgba(186,117,23,0.7)"></div>High</div>
+          <div class="legend-item"><div class="legend-sq" style="background:rgba(29,158,117,0.55)"></div>Moderate</div>
+          <div class="legend-item"><div class="legend-sq" style="background:rgba(29,158,117,0.18)"></div>Low</div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <svg width="8" height="8"><circle cx="4" cy="4" r="4" fill="#E24B4A"/></svg>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)">Hotspot</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="wait-card">
+          <div class="card-header"><span class="card-title">⏳ Wait Times</span></div>
+          <div id="waitRows"></div>
+        </div>
+
+        <div class="alert-card">
+          <div class="card-header"><span class="card-title">🔔 Smart Alerts</span></div>
+          <div id="alertRows"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="mini-card">
+        <div class="card-header"><span class="card-title">🧭 Route Suggestions</span></div>
+        <div class="nav-routes" id="navRoutes"></div>
+      </div>
+      <div class="mini-card">
+        <div class="card-header">
+          <span class="card-title">📈 Hourly Crowd Flow</span>
+          <span style="font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary)">% capacity</span>
+        </div>
+        <div class="sparkline-wrap">
+          <div class="spark-row" id="sparkRow"></div>
+          <div class="spark-labels" id="sparkLabels"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-bar">
+      <input class="chat-input" id="chatInput" placeholder="Ask CrowdFlow AI... e.g. 'Best route to Section D from Gate W'">
+      <button class="chat-btn" onclick="askAI()">Ask ↗</button>
+    </div>
+    <div class="chat-response" id="chatResponse"></div>
+    <div class="chat-hint" id="chatHint">🤖 Powered by Gemini · Real-time crowd data · Personalized routing</div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
