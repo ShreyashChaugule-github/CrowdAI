@@ -94,28 +94,70 @@ router.get('/stats', (req, res) => {
 
 router.post('/chat', (req, res) => {
   const { prompt } = req.body;
+  const p = prompt.toLowerCase();
+  // Helper for word-based matching to avoid "se" matching in "closed"
+  const hasWord = (str, word) => new RegExp(`\\b${word}\\b`, 'i').test(str);
+
   let response = '';
 
-  const p = prompt.toLowerCase();
-
-  if (p.includes('route') || p.includes('way') || p.includes('get to') || p.includes('section d')) {
-    const bestRoute = routes.find(r => r.status === 'clear') || routes[0];
-    response = `Best route to Section D: ${bestRoute.label}. ETA: ${bestRoute.eta}. Status: ${bestRoute.status}. Avoid Gate E due to congestion.`;
-  } else if (p.includes('wait') || p.includes('food') || p.includes('restroom')) {
-    const relevant = waitData.filter(w => p.includes(w.name.toLowerCase().split(' ')[0]));
-    if (relevant.length > 0) {
-      response = relevant.map(w => `${w.name}: ${w.time} min wait.`).join(' ');
+  // 1. Specific Zone/Stand queries
+  const standMatch = Object.entries(zones).find(([id, z]) => 
+    p.includes(z.label.toLowerCase()) || hasWord(p, id)
+  );
+  
+  if (standMatch) {
+    const [id, z] = standMatch;
+    response = `The ${z.label} is currently at a ${z.level} congestion level. `;
+    if (z.level === 'critical' || z.level === 'high') {
+      response += 'It is quite busy there right now. We recommend checking nearby sections for more space.';
     } else {
-      response = 'Current wait times: ' + waitData.map(w => `${w.name}: ${w.time}m`).join(', ') + '.';
+      response += 'There is plenty of space in this area.';
     }
-  } else if (p.includes('alert') || p.includes('issue')) {
-    response = 'Active alerts: ' + alertData.map(a => a.msg).join(' ');
-  } else if (p.includes('occupancy') || p.includes('crowd')) {
-    response = `Current occupancy: ${occupancy}%. Crowd score: ${crowdScore}/100. North and East stands are congested.`;
-  } else if (p.includes('help') || p.includes('what')) {
-    response = 'I can help with routing, wait times, alerts, and crowd info. Try asking "Best route to Section D" or "Wait time for Food Court".';
-  } else {
-    response = 'I\'m CrowdFlow AI. Ask me about routes, wait times, or current crowd status.';
+  } 
+  
+  // 2. Specific Facility queries (Wait times)
+  else if (p.includes('wait') || p.includes('food') || p.includes('restroom') || p.includes('court')) {
+    const facilityMatch = waitData.find(w => p.includes(w.name.toLowerCase()));
+    if (facilityMatch) {
+      response = `The wait time for ${facilityMatch.name} is currently ${facilityMatch.time} minutes. `;
+      if (facilityMatch.time > 10) {
+        const shorter = waitData.filter(w => w.name.includes(facilityMatch.name.split(' ')[0]) && w.time < facilityMatch.time);
+        if (shorter.length > 0) {
+          response += `For a shorter wait, try ${shorter[0].name} (${shorter[0].time}m).`;
+        }
+      }
+    } else {
+      response = 'Current wait times: ' + waitData.slice(0, 3).map(w => `${w.name}: ${w.time}m`).join(', ') + '...';
+    }
+  }
+
+  // 3. Specific Gate/Alert queries
+  else if (p.includes('gate') || p.includes('alert') || p.includes('issue') || p.includes('exit')) {
+    const criticalAlert = alertData.find(a => a.level === 'critical');
+    if (p.includes('gate e') || (p.includes('gate') && criticalAlert && criticalAlert.msg.includes('Gate E'))) {
+      response = 'Gate E is currently critically congested. We strongly advise using Gate W or S for a faster exit.';
+    } else if (alertData.length > 0) {
+      response = `Current alerts: ${alertData[0].msg}`;
+    } else {
+      response = 'There are no critical alerts at the moment. All gates are operating normally.';
+    }
+  }
+
+  // 4. Specific Route queries
+  else if (p.includes('route') || p.includes('way') || p.includes('get to') || p.includes('how do i')) {
+    const destination = p.includes('section d') ? 'Section D' : 'your destination';
+    const bestRoute = routes.find(r => r.status === 'clear') || routes[0];
+    response = `To get to ${destination} quickly, the best route is ${bestRoute.label}. It's currently ${bestRoute.status} with an ETA of ${bestRoute.eta}.`;
+  }
+
+  // 5. Greetings & Metadata
+  else if (hasWord(p, 'hi') || hasWord(p, 'hello') || hasWord(p, 'hey')) {
+    response = `Hello! I'm your CrowdFlow AI assistant. Currently, the stadium is at ${occupancy}% occupancy. How can I help you navigate the venue today?`;
+  }
+
+  // Fallback
+  else {
+    response = "I'm not quite sure about that. I can help with stadium navigation, wait times for food or restrooms, and current stand congestion. What would you like to know?";
   }
 
   res.json({ response });

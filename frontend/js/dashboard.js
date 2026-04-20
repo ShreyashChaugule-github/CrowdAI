@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 const fills = {
   critical: 'rgba(224,75,48,0.82)',
